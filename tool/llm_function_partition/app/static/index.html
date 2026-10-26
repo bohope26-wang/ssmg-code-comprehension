@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title data-i18n="home.title">LLM Function Partition</title>
+  <link rel="stylesheet" href="/style.css?v=20260425b">
+</head>
+<body class="page page-home">
+  <div class="page-shell">
+    <header class="topbar">
+      <div class="brand-block">
+        <p class="eyebrow" data-i18n="home.eyebrow">LLM Function Partition</p>
+        <h1 data-i18n="home.heading">Function Partition Workspace</h1>
+        <p class="subtitle" data-i18n="home.subtitle">Upload or paste Python source, configure partition options, and run semantic module decomposition.</p>
+      </div>
+      <ol class="stepper" aria-label="Workflow steps" data-i18n-aria-label="home.steps.label">
+        <li class="active" data-i18n="home.step.prepare">1. Prepare Input</li>
+        <li data-i18n="home.step.run">2. Run Partition</li>
+        <li data-i18n="home.step.inspect">3. Inspect Result</li>
+      </ol>
+      <div class="language-switcher" aria-label="Language" data-i18n-aria-label="language.label">
+        <button class="language-option active" type="button" data-language-option="en" aria-pressed="true" data-i18n="language.en">EN</button>
+        <button class="language-option" type="button" data-language-option="zh" aria-pressed="false" data-i18n="language.zh">中文</button>
+      </div>
+    </header>
+
+    <main class="workspace">
+      <section class="panel input-panel" aria-labelledby="input-heading">
+        <div class="panel-header">
+          <h2 id="input-heading" data-i18n="home.inputArea">Input Area</h2>
+          <span id="status-text" class="status-pill idle" data-i18n="home.status.idle">Idle</span>
+        </div>
+
+        <div class="field-grid">
+          <div class="field">
+            <label for="file-input" data-i18n="home.file.label">Python File</label>
+            <input id="file-input" type="file" accept=".py">
+            <p id="file-name" class="field-hint" data-i18n="home.file.none">No file selected.</p>
+          </div>
+
+          <div class="field">
+            <label for="function-name" data-i18n="home.functionName">Function Name</label>
+            <input id="function-name" type="text" value="process_orders" autocomplete="off">
+          </div>
+
+          <div class="field field-span">
+            <label for="source-code" data-i18n="home.sourceCode">Python Source Code</label>
+            <textarea id="source-code" spellcheck="false" placeholder="Paste one Python source file here..." data-i18n-placeholder="home.sourcePlaceholder"></textarea>
+            <div class="meta-row">
+              <span id="source-stats"></span>
+              <span id="input-hint" class="muted" data-i18n="home.inputHint.initial">Provide source and function name to enable run.</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <aside class="panel config-panel" aria-labelledby="config-heading">
+        <div class="panel-header">
+          <h2 id="config-heading" data-i18n="home.configArea">Configuration Area</h2>
+        </div>
+
+        <div class="field-grid">
+          <div class="field">
+            <label for="result-language" data-i18n="home.resultLanguage">Result Language</label>
+            <select id="result-language" data-language-select>
+              <option value="en" data-i18n="language.en">EN</option>
+              <option value="zh" data-i18n="language.zh">中文</option>
+            </select>
+            <p class="field-hint" data-i18n="home.resultLanguageHint">Controls the language used by the result page, graph labels, backend explanations, and new LLM output.</p>
+          </div>
+
+          <div class="field">
+            <label for="model" data-i18n="home.model">Model</label>
+            <input id="model" type="text" value="deepseek-chat" autocomplete="off">
+          </div>
+
+          <div class="field">
+            <label for="mode" data-i18n="home.pipelineMode">Pipeline Mode</label>
+            <select id="mode">
+              <option value="multi_stage" data-i18n="home.option.multiStage">Multi Stage</option>
+              <option value="one_shot" data-i18n="home.option.oneShot">One Shot</option>
+
+            </select>
+            <p id="mode-help" class="field-hint" data-i18n="home.mode.oneShot">Single-pass baseline mode.</p>
+          </div>
+
+          <div class="field">
+            <label for="max-modules" data-i18n="home.maxModules">Max Modules</label>
+            <input id="max-modules" type="number" min="6" max="9" value="7">
+          </div>
+
+          <div class="field">
+            <label for="temperature" data-i18n="home.temperature">Temperature</label>
+            <input id="temperature" type="number" min="0" max="1" step="0.1" value="0.0">
+          </div>
+
+          <div class="field">
+            <label for="max-candidates" data-i18n="home.maxCandidates">Max Candidates (Debug)</label>
+            <input id="max-candidates" type="number" min="1" max="5" value="3">
+          </div>
+
+          <div class="field">
+            <label for="enable-repair" data-i18n="home.enableRepair">Enable Repair</label>
+            <select id="enable-repair">
+              <option value="true" data-i18n="common.enabled">Enabled</option>
+              <option value="false" data-i18n="common.disabled">Disabled</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="multi-candidates-debug" data-i18n="home.multiCandidatesDebug">Multi Candidates Debug</label>
+            <select id="multi-candidates-debug">
+              <option value="false" data-i18n="common.disabled">Disabled</option>
+              <option value="true" data-i18n="common.enabled">Enabled</option>
+            </select>
+          </div>
+        </div>
+      </aside>
+    </main>
+
+    <footer class="action-bar">
+      <button id="load-sample-btn" class="btn btn-secondary" type="button" data-i18n="home.loadSample">Load Sample</button>
+      <button id="submit-btn" class="btn btn-primary" type="button" data-i18n="home.run">Run Partition and Open Result</button>
+    </footer>
+  </div>
+
+  <script src="/i18n.js?v=20260611a"></script>
+  <script src="/app.js?v=20260611a"></script>
+</body>
+</html>

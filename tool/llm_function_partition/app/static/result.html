@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <title data-i18n="result.title">Partition Result</title>
+  <link rel="stylesheet" href="/style.css?v=20260611d">
+  <script src="/vendor/cytoscape.min.js?v=3.30.2"></script>
+</head>
+<body class="page page-result">
+  <div class="page-shell">
+    <header class="topbar workspace-topbar">
+      <div class="brand-block">
+        <p id="eyebrow-label" class="eyebrow" data-i18n="result.eyebrow">Result Workspace</p>
+        <h1 id="workspace-title" data-i18n="result.heading">Partition Result</h1>
+        <p id="workspace-subtitle" class="subtitle" data-i18n="result.subtitle">Inspect module graph, CFG, and detailed evidence.</p>
+      </div>
+      <div class="workspace-actions">
+        <div class="language-switcher" aria-label="Language" data-i18n-aria-label="language.label">
+          <button class="language-option active" type="button" data-language-option="en" aria-pressed="true" data-i18n="language.en">EN</button>
+          <button class="language-option" type="button" data-language-option="zh" aria-pressed="false" data-i18n="language.zh">中文</button>
+        </div>
+        <button id="variable-trace-btn" class="btn btn-secondary" type="button" data-i18n="result.variableTrace">Variable Trace</button>
+        <button id="memory-board-btn" class="btn btn-secondary" type="button" data-i18n="result.memoryBoard">Memory Board</button>
+        <button id="task-mode-btn" class="btn btn-secondary" type="button" data-i18n="result.taskMode">Task Mode</button>
+        <button id="back-btn" class="btn btn-secondary" type="button" data-i18n="result.back">Back</button>
+        <button id="reload-btn" class="btn btn-primary" type="button" data-i18n="result.rerun">Rerun</button>
+      </div>
+    </header>
+
+    <section class="metrics-row" aria-label="Result summary" data-i18n-aria-label="result.summaryLabel">
+      <div class="metric-card">
+        <span class="metric-label" data-i18n="result.basicBlocks">Basic Blocks</span>
+        <strong id="metric-blocks">-</strong>
+      </div>
+      <div class="metric-card">
+        <span class="metric-label" data-i18n="result.modules">Modules</span>
+        <strong id="metric-modules">-</strong>
+      </div>
+      <div class="metric-card">
+        <span class="metric-label" data-i18n="result.mode">Mode</span>
+        <strong id="metric-mode">-</strong>
+      </div>
+      <div id="warnings" class="warnings" role="status" aria-live="polite"></div>
+    </section>
+
+    <div id="global-message" class="state-banner hidden" role="status" aria-live="polite"></div>
+
+    <main class="workspace-grid">
+      <section class="panel code-panel">
+        <div class="panel-header">
+          <h2 id="source-title" data-i18n="result.source">Source</h2>
+          <span id="code-focus-label" class="muted" data-i18n="result.noSelection">No selection.</span>
+        </div>
+        <div id="source-viewer" class="source-viewer"></div>
+      </section>
+
+      <section class="panel viewer-panel">
+        <div class="panel-header viewer-header">
+          <div class="tab-row" role="tablist" aria-label="Result views" data-i18n-aria-label="result.viewsLabel">
+            <button id="tab-module-graph" class="tab-btn active" data-view="module-graph" role="tab" aria-selected="true" data-i18n="result.tab.moduleGraph">Module Graph</button>
+            <button id="tab-cfg-graph" class="tab-btn" data-view="cfg-graph" role="tab" aria-selected="false" data-i18n="result.tab.cfg">CFG</button>
+            <button id="tab-modules" class="tab-btn" data-view="modules" role="tab" aria-selected="false" data-i18n="result.tab.modules">Modules</button>
+            <button id="tab-evidence" class="tab-btn" data-view="evidence" role="tab" aria-selected="false" data-i18n="result.tab.evidence">Evidence</button>
+            <button id="tab-stages" class="tab-btn" data-view="stages" role="tab" aria-selected="false" data-i18n="result.tab.stages">Stages</button>
+          </div>
+        </div>
+
+        <div class="selection-toolbar">
+          <div>
+            <p id="selection-label" class="selection-label" data-i18n="result.selection">Selection</p>
+            <p id="selection-summary" class="selection-summary" data-i18n="result.selectionEmpty">Select a module or basic block.</p>
+          </div>
+          <div class="selection-actions">
+            <button id="open-subcfg-btn" class="btn btn-secondary btn-small" type="button" disabled data-i18n="result.openChildCfg">Open Child CFG</button>
+            <button id="open-evidence-btn" class="btn btn-secondary btn-small" type="button" data-i18n="result.openEvidence">Open Evidence Chain</button>
+            <button id="open-details-btn" class="btn btn-primary btn-small" type="button" disabled data-i18n="result.openDetails">Open Details</button>
+          </div>
+        </div>
+
+        <section id="view-module-graph" class="view-panel active" role="tabpanel">
+          <div class="panel-header">
+            <h2 id="module-graph-title" data-i18n="result.moduleGraph">Module Graph</h2>
+            <span id="module-summary" class="muted"></span>
+          </div>
+          <div id="module-graph" class="graph graph-large"></div>
+
+          <div class="panel-header panel-subheader">
+            <h2 id="module-summary-title" data-i18n="result.moduleSummaries">Module Summaries</h2>
+            <span id="module-summary-hint" class="muted" data-i18n="result.moduleSummaryHint">Cards include direct actions.</span>
+          </div>
+          <div id="module-summary-strip" class="module-summary-strip"></div>
+        </section>
+
+        <section id="view-cfg-graph" class="view-panel" role="tabpanel">
+          <div class="panel-header">
+            <h2 id="cfg-title" data-i18n="result.tab.cfg">CFG</h2>
+            <div class="inline-actions">
+              <span id="cfg-summary" class="muted"></span>
+              <button id="reset-cfg-btn" class="btn btn-secondary btn-small" type="button" data-i18n="result.showFullCfg">Show Full CFG</button>
+            </div>
+          </div>
+          <div id="cfg-graph" class="graph graph-large"></div>
+        </section>
+
+        <section id="view-modules" class="view-panel" role="tabpanel">
+          <div class="split-grid">
+            <div>
+              <div class="panel-header">
+                <h2 id="modules-list-title" data-i18n="result.modules">Modules</h2>
+              </div>
+              <div id="modules-list" class="list-view"></div>
+            </div>
+            <div>
+              <div class="panel-header">
+                <h2 id="details-title" data-i18n="result.details">Details</h2>
+              </div>
+              <div id="details-box" class="detail-box" data-i18n="result.detailsEmpty">Use the toolbar or cards to inspect module or block details.</div>
+            </div>
+          </div>
+        </section>
+
+        <section id="view-evidence" class="view-panel" role="tabpanel">
+          <div class="panel-header">
+            <h2 id="evidence-title" data-i18n="result.evidenceChain">Evidence Chain</h2>
+            <span id="evidence-summary" class="muted" data-i18n="result.evidenceHint">Select a module to inspect its evidence chain.</span>
+          </div>
+          <div id="evidence-chain-view" class="evidence-chain-view">
+            <div class="empty-card" data-i18n="result.evidenceEmpty">Select a module or use the Evidence Chain button.</div>
+          </div>
+        </section>
+
+        <section id="view-stages" class="view-panel" role="tabpanel">
+          <div class="panel-header">
+            <h2 id="stages-title" data-i18n="result.stageOutputs">Stage Outputs</h2>
+          </div>
+          <div class="debug-stack">
+            <details open>
+              <summary data-i18n="result.stageAB">Stage AB: Global + BB Skeleton</summary>
+              <pre id="stage-ab-json" class="debug-pre"></pre>
+            </details>
+            <details>
+              <summary data-i18n="result.stageC">Stage C: Candidate Partition + Description</summary>
+              <pre id="stage-c-json" class="debug-pre"></pre>
+            </details>
+            <details>
+              <summary data-i18n="result.stageD">Stage D: Verify + Repair + Final Partition</summary>
+              <pre id="stage-d-json" class="debug-pre"></pre>
+            </details>
+          </div>
+        </section>
+      </section>
+    </main>
+  </div>
+
+  <section id="memory-board-panel" class="floating-panel floating-panel-hidden" aria-label="Memory board" data-i18n-aria-label="memory.aria">
+    <div class="floating-panel-header" data-drag-handle>
+      <div>
+        <p class="floating-panel-eyebrow" data-i18n="memory.eyebrow">External Memory</p>
+        <h2 data-i18n="memory.title">Memory Board</h2>
+      </div>
+      <div class="floating-panel-actions">
+        <button id="memory-export-btn" class="btn btn-secondary btn-small" type="button" data-i18n="memory.export">Export .md</button>
+        <button id="memory-close-btn" class="btn btn-secondary btn-small" type="button" data-i18n="common.close">Close</button>
+      </div>
+    </div>
+    <div class="floating-panel-body">
+      <p class="muted" data-i18n="memory.description">Capture relationships, tentative conclusions, boundary notes, or questions while you inspect the result.</p>
+      <textarea id="memory-board-input" class="memory-board-input" spellcheck="false" placeholder="# Notes&#10;&#10;- Module relationships&#10;- Boundary questions&#10;- Evidence to verify later" data-i18n-placeholder="memory.placeholder"></textarea>
+    </div>
+  </section>
+
+  <section id="task-mode-panel" class="floating-panel task-panel floating-panel-hidden" aria-label="Task mode" data-i18n-aria-label="task.aria">
+    <div class="floating-panel-header" data-drag-handle>
+      <div>
+        <p class="floating-panel-eyebrow" data-i18n="task.eyebrow">Task-Oriented Quiz</p>
+        <h2 data-i18n="task.title">Task Mode</h2>
+      </div>
+      <div class="floating-panel-actions">
+        <button id="task-refresh-btn" class="btn btn-secondary btn-small" type="button" data-i18n="task.regenerate">Regenerate</button>
+        <button id="task-close-btn" class="btn btn-secondary btn-small" type="button" data-i18n="common.close">Close</button>
+      </div>
+    </div>
+    <div class="floating-panel-body task-panel-body">
+      <div id="task-status" class="task-status" data-i18n="task.initialStatus">Generate comprehension questions to test your understanding of the current partition result.</div>
+      <div id="task-quiz-content" class="task-quiz-content">
+        <div class="empty-card" data-i18n="task.initialEmpty">Open Task Mode to generate 3 to 5 multiple-choice questions for this function.</div>
+      </div>
+      <div class="task-panel-footer">
+        <button id="task-submit-btn" class="btn btn-primary btn-small" type="button" disabled data-i18n="task.submit">Submit Answers</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="variable-trace-panel" class="floating-panel trace-panel floating-panel-hidden" aria-label="Variable trace" data-i18n-aria-label="trace.aria">
+    <div class="floating-panel-header" data-drag-handle>
+      <div>
+        <p class="floating-panel-eyebrow" data-i18n="trace.eyebrow">Variable Understanding</p>
+        <h2 data-i18n="trace.title">Variable Trace</h2>
+      </div>
+      <div class="floating-panel-actions">
+        <button id="trace-close-btn" class="btn btn-secondary btn-small" type="button" data-i18n="common.close">Close</button>
+      </div>
+    </div>
+    <div class="floating-panel-body trace-panel-body">
+      <div class="trace-toolbar">
+        <label class="trace-input-field">
+          <span data-i18n="trace.variableName">Variable Name</span>
+          <input id="trace-variable-input" type="text" spellcheck="false" placeholder="response / approval_required / workflow_payload" data-i18n-placeholder="trace.placeholder">
+        </label>
+        <div class="trace-toolbar-actions">
+          <label class="trace-checkbox">
+            <input id="trace-auto-explain" type="checkbox" checked>
+            <span data-i18n="trace.autoExplain">Auto explain</span>
+          </label>
+          <button id="trace-run-btn" class="btn btn-primary btn-small" type="button" data-i18n="trace.run">Trace</button>
+          <button id="trace-explain-btn" class="btn btn-secondary btn-small" type="button" disabled data-i18n="trace.generateExplanation">Generate Explanation</button>
+        </div>
+      </div>
+
+      <div id="trace-status" class="task-status" data-i18n="trace.initialStatus">Open Variable Trace, enter a variable name, and inspect its programmatic timeline.</div>
+
+      <div class="trace-layout">
+        <section class="trace-column trace-summary-column">
+          <div class="trace-section-head">
+            <h3 data-i18n="trace.facts">Trace Facts</h3>
+          </div>
+          <div id="trace-summary" class="trace-summary empty-card" data-i18n="trace.noTrace">No trace has been generated yet.</div>
+        </section>
+
+        <section class="trace-column trace-timeline-column">
+          <div class="trace-section-head">
+            <h3 data-i18n="trace.timeline">Timeline</h3>
+            <span class="muted" data-i18n="trace.timelineHint">Click an event to focus source, BB, and module.</span>
+          </div>
+          <div id="trace-timeline" class="trace-timeline">
+            <div class="empty-card" data-i18n="trace.timelineEmpty">Programmatic variable events will appear here.</div>
+          </div>
+        </section>
+
+        <section class="trace-column trace-explain-column">
+          <div class="trace-section-head">
+            <h3 data-i18n="trace.explanation">Explanation</h3>
+            <span class="muted" data-i18n="trace.explanationHint">Generated only from the existing timeline.</span>
+          </div>
+          <div id="trace-explanation" class="trace-explanation empty-card" data-i18n="trace.noExplanation">No explanation yet.</div>
+        </section>
+      </div>
+    </div>
+  </section>
+
+  <script src="/i18n.js?v=20260611a"></script>
+  <script src="/result.js?v=20260611d"></script>
+</body>
+</html>
