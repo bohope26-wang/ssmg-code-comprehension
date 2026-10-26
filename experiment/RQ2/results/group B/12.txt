@@ -1,0 +1,6 @@
+A1 理解：6min58s    做题：6min37s    答案：BABCB CCBAB
+B1 理解：5min29s    做题：5min17s    答案：BCBBC BCBBB
+C1 理解：6min41s    做题：6min12s    答案：BCCBA BABBB
+A2 理解：8min36s    做题：7min41s    答案：BBBAC BCABB
+B2 理解：7min58s    做题：6min43s    答案：CBCBA BBCBB
+C2 理解：8min05s    做题：8min29s    答案：BBABB BABBB                         1

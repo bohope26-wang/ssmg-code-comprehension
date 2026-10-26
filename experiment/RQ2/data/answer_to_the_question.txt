@@ -1,0 +1,6 @@
+Long Function1：BABCBCCBAB
+Repeated Switches1：BCBBCBCBBB
+Mutable Data1：BCCBABABBB
+Long Function2：BBBACBCABB
+Repeated Switches2：CBCBABBCBB
+Mutable Data2：BBABBBABCB
